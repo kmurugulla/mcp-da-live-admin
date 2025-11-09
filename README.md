@@ -50,7 +50,10 @@ Create block documentation with real content from sample pages:
 ```
 Set up block library for <org>/<repo> using sample page at <url>
 ```
-
+e.g: 
+- set up block library in kmurugulla org , brightspath site with example content from homepage , /ue-editor/demo pages. 
+- create a template called "Blog" based in the document at /blogs/article
+- Add a place holder for Telephone mapped to 1-800-123-4567
 The tool will:
 - Discover all blocks from GitHub repo
 - Extract real content from your sample page(s)
