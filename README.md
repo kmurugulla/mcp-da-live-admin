@@ -1,155 +1,179 @@
 # DA Admin MCP Server
 
-An MCP (Model Context Protocol) server that provides tools for interacting with the Document Authoring Admin API. This server allows you to manage content, versions, and configurations in DA repositories through MCP tools.
+Manage DA Live content via MCP - create block libraries, templates, placeholders from your code/pages.
 
-## Features
+## Quick Start
 
-- List sources and directories in DA repositories
-- Manage source content (get, create, delete)
-- Handle content versioning
-- Copy and move content between locations
-- Manage configurations
-- Lookup Media and Fragment References
-- **Set Up Block Library** - Automatically create block documentation from local EDS project or GitHub repo with real content examples from your pages. Manage templates, placeholders, and icons. Auto-registers everything in your library configuration
+**1. Get your DA token:**
+   - Login to [da.live](https://da.live) → [Use this bookmarklet](#da-token-bookmarklet) → Copy token
 
-## DA Admin API Token Setup
+**2. Add to Cursor MCP settings:**
+   ```json
+   "da-live-admin": {
+     "command": "npx",
+     "args": ["https://github.com/kmurugulla/mcp-da-live-admin"],
+     "env": {
+       "DA_ADMIN_API_TOKEN": "your_token_here"
+     }
+   }
+   ```
 
-### Method 1: Extract Token from DA Live (Recommended for Quick Testing)
+**3. Ask Cursor:**
+   ```
+   Set up block library in myorg/myrepo
+   ```
 
-1. Login to [https://da.live](https://da.live)
-2. Create a browser bookmark with this JavaScript code:
+---
+
+## <span id="da-token-bookmarklet">DA Token Bookmarklet</span>
+
+Login to [da.live](https://da.live), create a bookmark with this code, click it to copy your token:
 
 ```javascript
 javascript:(function(){try{const keys=Object.keys(localStorage).filter(k=>k.startsWith('adobeid_ims_access_token'));if(!keys.length){alert('Token not found. Make sure you are on da.live');return;}let token,expire;for(const k of keys){const data=JSON.parse(localStorage.getItem(k));if(data.valid){token=data.tokenValue;expire=data.expire;break;}}if(!token){alert('No valid token found. Please login again.');return;}navigator.clipboard.writeText(token).then(()=>{const expireDate=expire?new Date(expire).toLocaleString():'Unknown';alert(`Token copied to clipboard!\n\nExpires: ${expireDate}`);}).catch(()=>{const t=document.createElement('textarea');t.value=token;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);alert('Token copied!');});}catch(e){alert('Error: '+e.message);}})();
 ```
 
-3. Click the bookmarklet on da.live to copy the valid token
-4. Tokens typically expire after 24 hours
+*Note: Tokens expire after ~24 hours. For production use, apply to [Adobe Prerelease Program](https://www.adobeprerelease.com/beta/B3739D7D-1860-4197-9378-52EC0E75B1E5/apply).*
 
-### Method 2: Adobe Prerelease Program (For Production Use)
+---
 
-For long-term or production usage, join the Adobe Prerelease program:
+## Common Commands
 
-1. Apply at: [https://www.adobeprerelease.com/beta/B3739D7D-1860-4197-9378-52EC0E75B1E5/apply](https://www.adobeprerelease.com/beta/B3739D7D-1860-4197-9378-52EC0E75B1E5/apply)
-2. Once approved, follow Adobe's documentation for obtaining API credentials
-3. This method provides more stable, longer-lived tokens with proper API access
-
-## Cursor AI Setup
-
-To use this MCP server with Cursor AI, go to `Cursor Settings`, `MCP` and add a `New global MCP server`. Add this entry to your list of `mcpServers`:
-
-```json
-"da-live-media": {
-  "command": "npx",
-  "args": [
-    "https://github.com/kmurugulla/mcp-da-live-admin"
-  ],
-  "env": {
-    "DA_ADMIN_API_TOKEN": "your_api_token_here",
-    "GITHUB_TOKEN": "ghp_your_token_here"
-  }
-}
+**Block Library:**
+```
+Set up block library in org/repo with example content from homepage
+Add Cards block to library in org/repo with examples from /demo
 ```
 
-**Troubleshooting Token Issues:**
-- If you receive `401 Unauthorized` or `403 Forbidden` errors, your token may be expired
-- Re-login to da.live and extract a fresh token using the bookmarklet
-- Restart Cursor after updating the token in MCP settings
-
-
-
-## GitHub Token Setup (Optional, Required if generating Block documents based on code in GH repo)
-
-To use the block library features, add a `GITHUB_TOKEN` to your MCP config:
-
-1. Go to: [https://github.com/settings/tokens/new](https://github.com/settings/tokens/new)
-2. Set token name (e.g., "DA Live MCP Server - Read Only")
-3. **Select ONLY the minimum required scope:**
-
-   **If working with PUBLIC repositories only:**
-   - ✅ `public_repo` - Access public repositories
-   - ❌ Leave everything else unchecked
-
-   **If working with PRIVATE repositories:**
-   - ✅ `repo` - Access private repositories (read-only usage, GitHub doesn't offer granular read-only scope)
-   - ❌ Leave everything else unchecked
-
-4. Click "Generate token" and copy it immediately (you won't see it again)
-5. Add to MCP config `env`: `"GITHUB_TOKEN": "ghp_your_token_here"`
-
-**Why we need this:**
-- Read block code (JavaScript/CSS) from your GitHub repository
-- Increases API rate limit from 60 to 5,000 requests/hour
-
-**What we DON'T need:**
-- ❌ `read:org` - Not required
-- ❌ `workflow` - Not required
-- ❌ `write:packages` - Not required
-- ❌ Any other scopes - Not required
-
-**Note:** The MCP server only reads files from your repository. It never writes, commits, or modifies your GitHub data.
-
-## Usage
-
-### Set Up Block Library
-
-Create block documentation with real content from sample pages:
-
-**Examples:**
-
-Set up complete block library:
+**Templates:**
 ```
-Set up block library in kmurugulla/brightspath with example content from homepage and /ue-editor/demo pages
+Create template "Blog" from /blogs/article in org/repo
+Update template "Blog" from /blogs/new-article in org/repo
 ```
 
-Create a template:
+**Placeholders:**
 ```
-Create a template called "Blog" based on the document at /blogs/article in kmurugulla/brightspath
-```
-
-Add a placeholder:
-```
-Add a placeholder for Telephone mapped to 1-800-123-4567 in kmurugulla/brightspath
+Add placeholder "Phone" = "1-800-123-4567" in org/repo
+Update placeholder "Phone" to "1-800-999-8888" in org/repo
 ```
 
-Update block documentation:
+**Media:**
 ```
-Update Cards Block documentation in library with example from /drafts/mycard-demo in kmurugulla/brightspath
-```
-
-Delete a block from library:
-```
-Delete the Cards block from library in kmurugulla/brightspath
+Show unused media in org/repo
+Find images missing alt text in org/repo
 ```
 
-Update a template:
+---
+
+## Features
+
+- **Block Library Setup** - Auto-generate block docs from local/GitHub code with real content examples
+- **Template Management** - Create/update templates from existing pages
+- **Placeholder Management** - Manage site-wide placeholders
+- **Icon Management** - Register and organize icons
+- **Media Audit** - Find unused media, missing alt text, check accessibility
+- **Content Operations** - List, get, create, delete source content
+
+---
+
+<details>
+<summary><h2>📚 All Commands Reference</h2></summary>
+
+### Block Library Commands
+
+**Setup complete library:**
 ```
-Update the "Blog" template based on the document at /blogs/new-article in kmurugulla/brightspath
+Set up block library in org/repo with example content from homepage and /demo pages
 ```
 
-Delete a template:
+**Add single block:**
 ```
-Delete the "Blog" template from library in kmurugulla/brightspath
-```
-
-Update a placeholder:
-```
-Update placeholder for Telephone to 1-800-999-8888 in kmurugulla/brightspath
+Add Cards block to library in org/repo with example from /drafts/card-demo
+Update Cards block documentation with example from /drafts/new-demo in org/repo
 ```
 
-Delete a placeholder:
+**Remove block:**
 ```
-Delete the Telephone placeholder in kmurugulla/brightspath
+Delete Cards block from library in org/repo
 ```
 
+### Template Commands
+
+**Create:**
+```
+Create template "Blog" from /blogs/article in org/repo
+```
+
+**Update:**
+```
+Update template "Blog" from /blogs/new-article in org/repo
+```
+
+**Delete:**
+```
+Delete template "Blog" from library in org/repo
+```
+
+### Placeholder Commands
+
+**Add:**
+```
+Add placeholder "Telephone" = "1-800-123-4567" in org/repo
+```
+
+**Update:**
+```
+Update placeholder "Telephone" to "1-800-999-8888" in org/repo
+```
+
+**Delete:**
+```
+Delete placeholder "Telephone" in org/repo
+```
+
+### Media Commands
+
+**Audit:**
+```
+Show unused media in org/repo
+Find images missing alt text in org/repo
+Get media statistics for org/repo
+```
+
+**Search:**
+```
+Find all PNGs in org/repo
+Show images used in /blogs/article in org/repo
+```
+
+### Content Commands
+
+**List:**
+```
+List sources in /path in org/repo
+```
+
+**Get:**
+```
+Get source content at /path in org/repo
+```
+
+**Create/Delete:**
+```
+Create source content at /path in org/repo
+Delete source content at /path in org/repo
+```
+
+</details>
+
+---
 
 ## Contributing
 
 1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a new Pull Request
+2. Create feature branch
+3. Commit changes
+4. Push and create Pull Request
 
 ## License
 
